@@ -26,3 +26,7 @@ WHERE author = $1
 ORDER BY id
 LIMIT $2
 OFFSET $3;
+
+-- name: DeleteArticle :exec
+DELETE FROM articles
+WHERE id = $1;

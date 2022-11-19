@@ -1,4 +1,4 @@
-CREATE TABLE "users" (
+CREATE TABLE IF NOT EXISTS "users" (
   "username" varchar UNIQUE PRIMARY KEY,
   "hashed_password" varchar NOT NULL,
   "full_name" varchar NOT NULL,
@@ -7,7 +7,7 @@ CREATE TABLE "users" (
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
-CREATE TABLE "articles" (
+CREATE TABLE IF NOT EXISTS "articles" (
   "id" bigserial PRIMARY KEY,
   "author" varchar NOT NULL,
   "headline" varchar NOT NULL,

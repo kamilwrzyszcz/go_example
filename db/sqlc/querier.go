@@ -11,6 +11,7 @@ import (
 type Querier interface {
 	CreateArticle(ctx context.Context, arg CreateArticleParams) (Article, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteArticle(ctx context.Context, id int64) error
 	GetArticle(ctx context.Context, id int64) (Article, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	ListArticles(ctx context.Context, arg ListArticlesParams) ([]Article, error)
