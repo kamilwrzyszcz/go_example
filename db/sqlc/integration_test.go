@@ -16,18 +16,17 @@ import (
 
 // Integration tests
 
-type IntegrationTestSuite struct {
+type DBIntegrationTestSuite struct {
 	suite.Suite
-	db          *sql.DB
-	testQueries *Queries
-	m           *migrate.Migrate
+	store Store
+	m     *migrate.Migrate
 }
 
-func TestIntegrationTestSuite(t *testing.T) {
-	suite.Run(t, &IntegrationTestSuite{})
+func TestDBIntegrationTestSuite(t *testing.T) {
+	suite.Run(t, &DBIntegrationTestSuite{})
 }
 
-func (its *IntegrationTestSuite) SetupSuite() {
+func (its *DBIntegrationTestSuite) SetupSuite() {
 	config, err := util.LoadConfig("../..")
 	if err != nil {
 		its.FailNowf("cannot load config: ", err.Error())
@@ -37,21 +36,18 @@ func (its *IntegrationTestSuite) SetupSuite() {
 	if err != nil {
 		its.FailNowf("cannot connect to the db: ", err.Error())
 	}
-	testQueries := New(testDB)
+	its.store = NewStore(testDB)
 
-	its.db = testDB
-	its.testQueries = testQueries
-
-	setupDatabase(its)
+	setupDatabase(its, testDB)
 }
 
-func (its *IntegrationTestSuite) TearDownSuite() {
+func (its *DBIntegrationTestSuite) TearDownSuite() {
 	tearDownDatabase(its)
 }
 
 // Tests
 
-func createRandomArticle(its *IntegrationTestSuite) Article {
+func createRandomArticle(its *DBIntegrationTestSuite) Article {
 	user := createRandomUser(its)
 
 	arg := CreateArticleParams{
@@ -60,7 +56,7 @@ func createRandomArticle(its *IntegrationTestSuite) Article {
 		Content:  util.RandomString(25),
 	}
 
-	article, err := its.testQueries.CreateArticle(context.Background(), arg)
+	article, err := its.store.CreateArticle(context.Background(), arg)
 	its.NoError(err)
 	its.NotEmpty(article)
 
@@ -74,7 +70,7 @@ func createRandomArticle(its *IntegrationTestSuite) Article {
 	return article
 }
 
-func createRandomUser(its *IntegrationTestSuite) User {
+func createRandomUser(its *DBIntegrationTestSuite) User {
 	hashedPassword, err := util.HashPassword(util.RandomString(6))
 	its.NoError(err)
 
@@ -85,7 +81,7 @@ func createRandomUser(its *IntegrationTestSuite) User {
 		Email:          util.RandomEmail(),
 	}
 
-	user, err := its.testQueries.CreateUser(context.Background(), arg)
+	user, err := its.store.CreateUser(context.Background(), arg)
 	its.NoError(err)
 	its.NotEmpty(user)
 
@@ -100,13 +96,13 @@ func createRandomUser(its *IntegrationTestSuite) User {
 	return user
 }
 
-func (its *IntegrationTestSuite) TestCreateUser() {
+func (its *DBIntegrationTestSuite) TestCreateUser() {
 	createRandomUser(its)
 }
 
-func (its *IntegrationTestSuite) TestGetUser() {
+func (its *DBIntegrationTestSuite) TestGetUser() {
 	user1 := createRandomUser(its)
-	user2, err := its.testQueries.GetUser(context.Background(), user1.Username)
+	user2, err := its.store.GetUser(context.Background(), user1.Username)
 	its.NoError(err)
 	its.NotEmpty(user2)
 
@@ -117,19 +113,19 @@ func (its *IntegrationTestSuite) TestGetUser() {
 	its.WithinDuration(user1.CreatedAt, user2.CreatedAt, time.Second)
 	its.WithinDuration(user1.PasswordChangedAt, user2.PasswordChangedAt, time.Second)
 
-	user3, err := its.testQueries.GetUser(context.Background(), "non-existing-user")
+	user3, err := its.store.GetUser(context.Background(), "non-existing-user")
 	its.Error(err)
 	its.ErrorIs(err, sql.ErrNoRows)
 	its.Empty(user3)
 }
 
-func (its *IntegrationTestSuite) TestCreateArticle() {
+func (its *DBIntegrationTestSuite) TestCreateArticle() {
 	createRandomArticle(its)
 }
 
-func (its *IntegrationTestSuite) TestGetArticle() {
+func (its *DBIntegrationTestSuite) TestGetArticle() {
 	article1 := createRandomArticle(its)
-	article2, err := its.testQueries.GetArticle(context.Background(), article1.ID)
+	article2, err := its.store.GetArticle(context.Background(), article1.ID)
 	its.NoError(err)
 	its.NotEmpty(article2)
 
@@ -139,13 +135,13 @@ func (its *IntegrationTestSuite) TestGetArticle() {
 	its.Equal(article1.Content, article2.Content)
 	its.WithinDuration(article1.CreatedAt, article2.CreatedAt, time.Second)
 
-	article3, err := its.testQueries.GetArticle(context.Background(), 2137)
+	article3, err := its.store.GetArticle(context.Background(), 2137)
 	its.Error(err)
 	its.EqualError(err, sql.ErrNoRows.Error())
 	its.Empty(article3)
 }
 
-func (its *IntegrationTestSuite) TestUpdateArticle() {
+func (its *DBIntegrationTestSuite) TestUpdateArticle() {
 	article1 := createRandomArticle(its)
 
 	arg1 := UpdateArticleParams{
@@ -160,7 +156,7 @@ func (its *IntegrationTestSuite) TestUpdateArticle() {
 		ID: article1.ID,
 	}
 
-	article2, err := its.testQueries.UpdateArticle(context.Background(), arg1)
+	article2, err := its.store.UpdateArticle(context.Background(), arg1)
 	its.NoError(err)
 	its.NotEmpty(article2)
 
@@ -179,7 +175,7 @@ func (its *IntegrationTestSuite) TestUpdateArticle() {
 		ID: article1.ID,
 	}
 
-	article3, err := its.testQueries.UpdateArticle(context.Background(), arg2)
+	article3, err := its.store.UpdateArticle(context.Background(), arg2)
 	its.NoError(err)
 	its.NotEmpty(article3)
 
@@ -191,18 +187,18 @@ func (its *IntegrationTestSuite) TestUpdateArticle() {
 	its.WithinDuration(article3.EditedAt.Time, time.Now(), time.Second)
 }
 
-func (its *IntegrationTestSuite) TestDeleteArticle() {
+func (its *DBIntegrationTestSuite) TestDeleteArticle() {
 	article1 := createRandomArticle(its)
-	err := its.testQueries.DeleteArticle(context.Background(), article1.ID)
+	err := its.store.DeleteArticle(context.Background(), article1.ID)
 	its.NoError(err)
 
-	article2, err := its.testQueries.GetArticle(context.Background(), article1.ID)
+	article2, err := its.store.GetArticle(context.Background(), article1.ID)
 	its.Error(err)
 	its.EqualError(err, sql.ErrNoRows.Error())
 	its.Empty(article2)
 }
 
-func (its *IntegrationTestSuite) TestListArticles() {
+func (its *DBIntegrationTestSuite) TestListArticles() {
 	var lastArticle Article
 	for i := 0; i < 10; i++ {
 		lastArticle = createRandomArticle(its)
@@ -214,7 +210,7 @@ func (its *IntegrationTestSuite) TestListArticles() {
 		Offset: 0,
 	}
 
-	articles, err := its.testQueries.ListArticles(context.Background(), arg)
+	articles, err := its.store.ListArticles(context.Background(), arg)
 	its.NoError(err)
 	its.NotEmpty(articles)
 
@@ -226,10 +222,10 @@ func (its *IntegrationTestSuite) TestListArticles() {
 
 // Setup helper functions
 
-func setupDatabase(its *IntegrationTestSuite) {
+func setupDatabase(its *DBIntegrationTestSuite, db *sql.DB) {
 	its.T().Log("setting up database")
 
-	driver, err := postgres.WithInstance(its.db, &postgres.Config{})
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		its.FailNowf("cannot get driver: ", err.Error())
 	}
@@ -248,11 +244,16 @@ func setupDatabase(its *IntegrationTestSuite) {
 	its.m = m
 }
 
-func tearDownDatabase(its *IntegrationTestSuite) {
+func tearDownDatabase(its *DBIntegrationTestSuite) {
 	its.T().Log("tearing down database")
 
 	err := its.m.Down()
 	if err != nil {
 		its.FailNowf("failed to migrate down: ", err.Error())
+	}
+
+	err = its.store.Close()
+	if err != nil {
+		its.FailNowf("failed to close the db connection: ", err.Error())
 	}
 }

@@ -1,7 +1,9 @@
-package redis
+package session
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v9"
@@ -32,19 +34,39 @@ func NewRedisClient(address, password string) (*RedisClient, error) {
 }
 
 // Sets a new value in redis
-func (client *RedisClient) Set(ctx context.Context, key string, body []byte, til time.Duration) error {
+func (client *RedisClient) Set(ctx context.Context, key string, session *Session) error {
+	body, err := json.Marshal(session)
+	if err != nil {
+		return err
+	}
+
+	t1 := time.Now()
+	t2 := session.ExpiresAt
+	til := t2.Sub(t1)
+
 	return client.rdb.Set(ctx, key, body, til).Err()
 }
 
 // Gets value from redis by key
-func (client *RedisClient) Get(ctx context.Context, key string) ([]byte, error) {
+func (client *RedisClient) Get(ctx context.Context, key string) (*Session, error) {
 	cmd := client.rdb.Get(ctx, key)
 	_, err := cmd.Result()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("couldn't get value from redis: %w", err)
 	}
 
-	return cmd.Bytes()
+	res, err := cmd.Bytes()
+	if err != nil {
+		return nil, fmt.Errorf("couldn't get res as bytes: %w", err)
+	}
+
+	var session Session
+	err = json.Unmarshal(res, &session)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't unmarshal: %w", err)
+	}
+
+	return &session, nil
 }
 
 // Deletes a value from redis
