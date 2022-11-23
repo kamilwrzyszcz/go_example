@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	db "github.com/kamilwrzyszcz/go_example/db/sqlc"
 	"github.com/kamilwrzyszcz/go_example/session"
+	"github.com/kamilwrzyszcz/go_example/token"
 	"github.com/kamilwrzyszcz/go_example/util"
 	"github.com/lib/pq"
 )
@@ -166,4 +168,29 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
-// TODO: Logout
+type logoutUserRequest struct {
+	Username string `json:"username" binding:"required,alphanum"`
+}
+
+func (server *Server) logoutUser(ctx *gin.Context) {
+	var req logoutUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if req.Username != authPayload.Username {
+		err := errors.New("account doesn't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	err := server.sessionClient.Del(ctx, authPayload.ID.String())
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{})
+}
