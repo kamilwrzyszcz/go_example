@@ -9,7 +9,7 @@ import (
 )
 
 type renewAccessTokenRequest struct {
-	RefreshToken string `json:"refesh_token" binding:"required"`
+	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
 type renewAccessTokenResponse struct {
