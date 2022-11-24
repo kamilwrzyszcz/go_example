@@ -40,7 +40,20 @@ func NewServer(config util.Config, store db.Store, sessionClient session.Session
 func (server *Server) setupRouter() {
 	router := gin.Default()
 
-	// TODO: progressively add routes
+	router.POST("/users", server.createUser)
+	router.POST("/users/login", server.loginUser)
+
+	router.POST("/tokens/renew_access", server.renewAccessToken)
+
+	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker, server.sessionClient))
+
+	authRoutes.POST("/users/logout", server.logoutUser)
+
+	authRoutes.POST("/articles", server.createArticle)
+	authRoutes.GET("/articles/:id", server.getArticle)
+	authRoutes.GET("/articles", server.listArticles)
+	authRoutes.DELETE("/articles/:id", server.deleteArticle)
+	authRoutes.PATCH("/articles/:id", server.updateArticle)
 
 	server.router = router
 }
