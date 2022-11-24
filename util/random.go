@@ -26,6 +26,11 @@ func RandomString(n int) string {
 	return sb.String()
 }
 
+// RandomInt generates a random integer between min and max
+func RandomInt(min, max int64) int64 {
+	return min + rand.Int63n(max-min+1)
+}
+
 // RandomAuthor generates a random author's name
 func RandomAuthor() string {
 	return RandomString(6)

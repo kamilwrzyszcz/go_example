@@ -6,6 +6,10 @@ createdb:
 	docker exec -it example_postgres createdb --username=root --owner=root example_db
 create_testdb:
 	docker exec -it example_postgres createdb --username=root --owner=root test_db
+mock_db:
+	GOFLAGS=-mod=mod mockgen -package mockdb -destination db/mock/store.go github.com/kamilwrzyszcz/go_example/db/sqlc Store
+mock_redis:
+	GOFLAGS=-mod=mod mockgen -package mockdb -destination session/mock/redis.go github.com/kamilwrzyszcz/go_example/session SessionClient
 run_postgres:
 	docker start example_postgres
 stop_postgres:
@@ -25,4 +29,4 @@ migratedown:
 sqlc:
 	sqlc generate
 
-.PHONY: create_postgres create_redis createdb create_testdb run_postgres stop_postgres run_redis stop_redis dropdb drop_testdb migrateup migratedown sqlc
+.PHONY: create_postgres create_redis createdb mock_db mock_redis create_testdb run_postgres stop_postgres run_redis stop_redis dropdb drop_testdb migrateup migratedown sqlc
