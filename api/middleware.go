@@ -48,6 +48,7 @@ func authMiddleware(tokenMaker token.Maker, sessionClient session.SessionClient)
 
 		session, err := sessionClient.Get(ctx, payload.ID.String())
 		if err != nil {
+			err = errors.New("couldn't find a session")
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
