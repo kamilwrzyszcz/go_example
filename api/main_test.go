@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Create new test server to be used in api tests. Services are supposed to be mocked
 func newTestServer(t *testing.T, store db.Store, sessionClient session.SessionClient) *Server {
 	config := util.Config{
 		TokenSymmetricKey:   util.RandomString(32),
