@@ -1,0 +1,1 @@
+Simple Go app created for learning purposes
