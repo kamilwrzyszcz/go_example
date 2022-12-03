@@ -5,11 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"github.com/go-redis/redis/v9"
 )
 
-// Provides functions to work with redis
+// RedisClient Provides functions to work with redis
 type RedisClient struct {
 	rdb *redis.Client
 }
@@ -33,7 +31,7 @@ func NewRedisClient(address, password string) (*RedisClient, error) {
 	return client, nil
 }
 
-// Sets a new value in redis
+// Set Sets a new value in redis
 func (client *RedisClient) Set(ctx context.Context, key string, session *Session) error {
 	body, err := json.Marshal(session)
 	if err != nil {
@@ -47,7 +45,7 @@ func (client *RedisClient) Set(ctx context.Context, key string, session *Session
 	return client.rdb.Set(ctx, key, body, til).Err()
 }
 
-// Gets value from redis by key
+// Get Gets value from redis by key
 func (client *RedisClient) Get(ctx context.Context, key string) (*Session, error) {
 	cmd := client.rdb.Get(ctx, key)
 	_, err := cmd.Result()
@@ -69,7 +67,7 @@ func (client *RedisClient) Get(ctx context.Context, key string) (*Session, error
 	return &session, nil
 }
 
-// Deletes a value from redis
+// Del Deletes a value from redis
 func (client *RedisClient) Del(ctx context.Context, key string) error {
 	return client.rdb.Del(ctx, key).Err()
 }
