@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Could write much more but it shows general idea
+// Could write much more but it shows the general idea
 
 func TestArticleAPI(t *testing.T) {
 	user, _ := randomUser(t)
