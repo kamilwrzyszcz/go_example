@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+	
+	"github.com/go-redis/redis/v9"
 )
 
 // RedisClient Provides functions to work with redis
