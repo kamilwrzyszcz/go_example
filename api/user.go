@@ -40,6 +40,18 @@ func newUserResponse(user db.User) userResponse {
 	}
 }
 
+// CreateUser godoc
+// @Summary      Create user
+// @Description  Create a new user
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param   payload   body    api.createUserRequest    true  "User payload"
+// @Success      201  {object}  api.userResponse
+// @Failure      400  {object} object{error=string}
+// @Failure      403  {object} object{error=string}
+// @Failure      500  {object} object{error=string}
+// @Router       /users [post]
 func (server *Server) createUser(ctx *gin.Context) {
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -91,6 +103,19 @@ type loginUserResponse struct {
 	User                  userResponse `json:"user"`
 }
 
+// LoginUser godoc
+// @Summary      Login user
+// @Description  Login a user
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param   payload   body    api.loginUserRequest    true  "Login payload"
+// @Success      200  {object}  api.loginUserResponse
+// @Failure      400  {object} object{error=string}
+// @Failure      401  {object} object{error=string}
+// @Failure      404  {object} object{error=string}
+// @Failure      500  {object} object{error=string}
+// @Router       /users/login [post]
 func (server *Server) loginUser(ctx *gin.Context) {
 	var req loginUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -167,6 +192,16 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+// LogoutUser godoc
+// @Summary      Logout user
+// @Description  Logout a user
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  api.loginUserResponse
+// @Failure      500  {object} object{error=string}
+// @Security BearerAuth
+// @Router       /users/logout [post]
 func (server *Server) logoutUser(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 

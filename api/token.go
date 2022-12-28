@@ -17,6 +17,18 @@ type renewAccessTokenResponse struct {
 	AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`
 }
 
+// RenewAccessToken godoc
+// @Summary      Renew Access Token
+// @Description  Renew Access Token
+// @Tags         tokens
+// @Accept       json
+// @Produce      json
+// @Param   payload   body    api.renewAccessTokenRequest   true  "Token payload"
+// @Success      200  {object}  api.renewAccessTokenResponse
+// @Failure      400  {object} object{error=string}
+// @Failure      401  {object} object{error=string}
+// @Failure      500  {object} object{error=string}
+// @Router       /tokens/renew_access [post]
 func (server *Server) renewAccessToken(ctx *gin.Context) {
 	var req renewAccessTokenRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
