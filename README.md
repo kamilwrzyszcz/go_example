@@ -3,4 +3,4 @@
 Simple Go app created for learning purposes
 
 Run with:
-    `docker-compose up`
+    `docker compose up`
