@@ -28,5 +28,7 @@ migratedown:
 	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/dropdb:?sslmode=disable" -verbose down
 sqlc:
 	sqlc generate
+swagger:
+	swag init --parseDependency  --parseInternal --parseDepth 1  -g api/server.go
 
-.PHONY: create_postgres create_redis createdb mock_db mock_redis create_testdb run_postgres stop_postgres run_redis stop_redis dropdb drop_testdb migrateup migratedown sqlc
+.PHONY: create_postgres create_redis createdb mock_db mock_redis create_testdb run_postgres stop_postgres run_redis stop_redis dropdb drop_testdb migrateup migratedown sqlc swagger
