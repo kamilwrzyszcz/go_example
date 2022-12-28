@@ -5,9 +5,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	db "github.com/kamilwrzyszcz/go_example/db/sqlc"
+	_ "github.com/kamilwrzyszcz/go_example/docs"
 	"github.com/kamilwrzyszcz/go_example/session"
 	"github.com/kamilwrzyszcz/go_example/token"
 	"github.com/kamilwrzyszcz/go_example/util"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Server serves HTTP requests for our banking service
@@ -37,8 +40,25 @@ func NewServer(config util.Config, store db.Store, sessionClient session.Session
 	return server, nil
 }
 
+// @title           Go Example
+// @version         1.0
+// @description     An example Go API
+
+// @contact.name   Kamil Wrzyszcz
+// @contact.email  kamilwrzyszcz95@gmail.com
+
+// @license.name  MIT
+// @license.url   https://github.com/kamilwrzyszcz/go_example/blob/master/LICENSE.md
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
+// @host      localhost:8080
 func (server *Server) setupRouter() {
 	router := gin.Default()
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
