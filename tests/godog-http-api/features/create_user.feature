@@ -50,7 +50,7 @@ Feature: Tests related to creation of user
     And the "JSON" node "error" should be "string"
 
   @failure
-  Scenario: Unsuccessful attempt to create use due to email duplication
+  Scenario: Unsuccessful attempt to create user due to email duplication
 
     Given I generate a random word having from "5" to "10" of "english" characters and save it as "RANDOM_NAME"
     Given I generate a random word having from "6" to "10" of "english" characters and save it as "RANDOM_PASSWORD"
@@ -95,7 +95,7 @@ Feature: Tests related to creation of user
     And the "JSON" node "error" should contain sub string "duplicate key"
 
   @failure
-  Scenario: Unsuccessful attempt to create use due to too short password
+  Scenario: Unsuccessful attempt to create user due to password being too short
 
     Given I generate a random word having from "5" to "10" of "english" characters and save it as "RANDOM_NAME"
     Given I generate a random word having from "1" to "3" of "english" characters and save it as "RANDOM_PASSWORD"
@@ -120,7 +120,7 @@ Feature: Tests related to creation of user
     But the response status code should be 400
 
   @failure
-  Scenario: Unsuccessful attempt to create use due to username not being alphanumeric
+  Scenario: Unsuccessful attempt to create user due to username not being alphanumeric
 
     Given I generate a random word having from "5" to "10" of "english" characters and save it as "RANDOM_NAME"
     Given I generate a random word having from "6" to "10" of "english" characters and save it as "RANDOM_PASSWORD"
